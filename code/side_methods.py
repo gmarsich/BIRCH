@@ -7,7 +7,7 @@ import CFTree_methods # local file
 # Distances
 #
 
-def average_intercluster_distance_D2(CF_1, CF_2): #TODO: verify that it is correct
+def average_intercluster_distance_D2(CF_1, CF_2):
     num = CF_2.N * CF_1.SS + CF_1.N * CF_2.SS - 2 * np.sum(CF_1.LS * CF_2.LS)
     D2 = np.sqrt(num / (CF_1.N * CF_2.N))
     return D2
@@ -38,9 +38,11 @@ def hierarchical_clustering(list_subclusters, num_clusters, distance = average_i
 
     # Agglomerative clustering process
     while len(clusters) > num_clusters:
+
         # Find the pair of clusters with the smallest distance
         min_dist = np.inf
         min_pair = None
+
         for i in clusters:
             for j in clusters:
                 if i < j:
@@ -62,6 +64,7 @@ def hierarchical_clustering(list_subclusters, num_clusters, distance = average_i
         new_CF = CFTree_methods.CF()
         new_CF.merge_CF(list_subclusters[merge_i][0])
         new_CF.merge_CF(list_subclusters[merge_j][0])
+
         for j in range(len(list_subclusters)):
             if distance_matrix[merge_i, j] != np.inf:
                 distance_matrix[merge_i, j] = distance(new_CF, list_subclusters[j][0])
@@ -78,9 +81,9 @@ def hierarchical_clustering(list_subclusters, num_clusters, distance = average_i
         for idx in cluster_indices:
             final_clusters[idx] = orig_cluster_idx
 
-
     result_clusters = {}
     for subcluster_idx, cluster in final_clusters.items():
+
         # Initialize list if it doesn't exist for the current cluster
         if cluster not in result_clusters:
             result_clusters[cluster] = []
@@ -98,21 +101,22 @@ def hierarchical_clustering(list_subclusters, num_clusters, distance = average_i
     for i, old_key in enumerate(old_keys):
         result_clusters[i] = result_clusters.pop(old_key)
 
+    # result_clusters is a dictionary where the key indicates the index of the cluster and the value is an array of the associated datapoints
     return result_clusters
 
 
 
 def compute_centroid_X0(array_datapoints):
     num = np.sum(array_datapoints, axis=0)
-    # TODO IMPROVEMENT: an alternative could be to compute X0 starting from the clustering feature of the cluster
     return num / len(array_datapoints)
 
 
 
 def redistribute_datapoints(result_clusters, num_iterations):
-    # TODO IMPROVEMENT: a further improvement could be to handle the outliers:
-    #   if a datapoint is too far away from all the centroids, label it as outlier
     new_result_clusters = copy.deepcopy(result_clusters)
+
+    # Uses the centroids of the clusters produced by Phase 3 as seeds, and redistributes the data points to its closest seed 
+        # to obtain a set of new clusters. This process is repeated for num_iterations times
     for i in range(num_iterations):
         centroids = []
         for cluster_i in range(len(new_result_clusters)):
